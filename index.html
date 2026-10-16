@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation</title>
+<meta name="description" content="PhyEvolve formulates prompt enhancement for physics-aware video generation as semantic completion through structured state-evolution planning, with a Director, a Physical Evolver and a Composer, and no change to the video generator.">
+<meta name="author" content="Yang-Hao Zhou, Lixing Tan, Zhiqi Li, Guang Yang, Xiao Yang">
+<meta name="citation_title" content="PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation">
+<meta name="citation_author" content="Yang-Hao Zhou">
+<meta name="citation_author" content="Lixing Tan">
+<meta name="citation_author" content="Zhiqi Li">
+<meta name="citation_author" content="Guang Yang">
+<meta name="citation_author" content="Xiao Yang">
+<meta name="citation_publication_date" content="2026">
+<link rel="canonical" href="https://phyevolve.github.io/phyevolve-project-page/">
+<meta property="og:url" content="https://phyevolve.github.io/phyevolve-project-page/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation">
+<meta property="og:description" content="PhyEvolve formulates prompt enhancement for physics-aware video generation as semantic completion through structured state-evolution planning, with a Director, a Physical Evolver and a Composer, and no change to the video generator.">
+<meta property="og:image" content="https://phyevolve.github.io/phyevolve-project-page/assets/img/og_card.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://phyevolve.github.io/phyevolve-project-page/assets/img/og_card.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='9' width='18' height='14' rx='3' fill='%23BAE6FD'/%3E%3Crect x='6' y='6' width='18' height='14' rx='3' fill='%237DD3FC'/%3E%3Crect x='10' y='3' width='19' height='15' rx='3' fill='%231E9FD0'/%3E%3Cpath d='M17 7l6 3.5-6 3.5z' fill='white'/%3E%3C/svg%3E">
+<style>
+/* ======================================================================
+   Design tokens — taken from the PhyEvolve figures (teaser + overview)
+   ====================================================================== */
+:root{
+  --ink:#222222; --ink2:#374151; --white:#FFFFFF;
+  --ours:#1E9FD0; --ours-dk:#0B6E96; --ours-bg:#E6F5FB;
+  --bad:#E2405F; --bad-bg:#FDE8EC;
+  --ent:#4E8A2B; --phy:#B8860B; --phy-bg:#FBF5DD;
+  --slate:#4B5563; --line:#9CA3AF; --grid:#D9DDE3; --g100:#F3F4F6; --g200:#E5E7EB;
+  --dir:#EAF2FB; --dir-line:#8EA9DB;      /* Director  */
+  --evo:#F0F7EC; --evo-line:#A9D18E;      /* Evolver   */
+  --cmp:#FDF6E3; --cmp-line:#F4B183;      /* Composer  */
+  --head:linear-gradient(90deg,#E4F1FB 0%,#EEF7F4 50%,#FBF5DD 100%);
+  --film:#1A1A1A;
+  --serif:"Times New Roman",Times,"Nimbus Roman","Liberation Serif",serif;
+  --radius:12px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img,video{display:block;max-width:100%}
+a{color:var(--ours-dk);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.e{color:var(--ent);font-weight:700}
+.p{color:var(--phy);font-weight:700}
+.ours{color:var(--ours)}
+em.k{font-style:italic}
+
+/* ---------- nav ---------- */
+nav.top{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--grid)}
+nav.top .wrap{display:flex;align-items:center;gap:22px;height:56px}
+.logo{display:flex;align-items:center;gap:8px;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:21px;color:var(--ours);letter-spacing:.2px}
+.logo svg{width:30px;height:30px}
+nav.top .links{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+nav.top .links a{color:var(--ink);font-size:16px}
+nav.top .links a:hover{color:var(--ours-dk);text-decoration:none}
+@media (max-width:760px){nav.top .links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:34px 0 10px}
+.hero-card{background:var(--head);border:1px solid var(--grid);border-radius:18px;padding:34px 34px 28px;text-align:center}
+.venue{display:inline-block;font-size:15px;border:1px solid var(--line);border-radius:999px;padding:2px 12px;background:#fff;margin-bottom:12px}
+h1.title{font-size:42px;line-height:1.18;margin:0 auto 14px;max-width:980px;font-weight:700;text-wrap:balance}
+h1.title .nw{white-space:nowrap}
+h1.title .name{color:var(--ours);font-family:Arial,Helvetica,sans-serif;letter-spacing:.3px}
+.authors{font-size:20px;font-weight:700;margin:6px 0 2px;display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:2px}
+.authors .au{white-space:nowrap}
+.authors sup,.au-notes sup{font-size:12px;font-weight:400;margin-left:1px}
+.affil{font-size:18px;margin-bottom:2px}
+.au-notes{font-size:15.5px;margin-bottom:16px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0 4px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border-radius:999px;background:var(--ink);color:#fff;font-size:16px;font-weight:700;border:0;cursor:pointer;font-family:var(--serif)}
+.btn:hover{background:var(--ours-dk);text-decoration:none}
+.btn svg{width:16px;height:16px;fill:currentColor}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.ghost:hover{border-color:var(--ours-dk);color:var(--ours-dk)}
+.tldr{max-width:900px;margin:18px auto 0;font-size:19px}
+.tldr b.lbl{color:var(--ours-dk)}
+
+/* ---------- section scaffolding (gradient header bar like the figure) ---------- */
+section{padding:34px 0 8px}
+.sec-head{display:flex;align-items:center;gap:12px;background:var(--head);border-radius:12px;padding:9px 18px;border-bottom:2px solid #B8C4CE;margin-bottom:18px}
+.sec-head h2{margin:0;font-size:28px;font-weight:700}
+.sec-head .num{font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;color:#fff;background:var(--ours);border-radius:999px;width:26px;height:26px;display:grid;place-items:center;flex:none}
+.sec-sub{font-size:18px;margin:-6px 0 16px}
+.card{border:1.5px solid var(--line);border-radius:var(--radius);background:#fff}
+.dashed{border-style:dashed}
+
+/* ---------- pills / chips ---------- */
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--serif);font-size:14.5px;font-weight:700;color:#fff;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.ok{background:var(--ours)}
+.pill.no{background:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:14px;border:1.3px solid var(--line);background:#fff;border-radius:7px;padding:2px 9px;white-space:nowrap}
+.chip.bench{border-color:var(--ours);color:var(--ours-dk);background:var(--ours-bg);font-weight:700}
+.chip.tag{background:var(--g100)}
+.chip.hid{background:var(--slate);border-color:var(--slate);color:#fff;font-weight:700}
+
+/* ---------- filmstrip ---------- */
+.film{background:var(--film);border-radius:6px;padding:12px 8px;position:relative}
+.film::before,.film::after{content:"";position:absolute;left:8px;right:8px;height:5px;
+  background:repeating-linear-gradient(90deg,#E6E6E6 0 7px,transparent 7px 15px);border-radius:2px;opacity:.95}
+.film::before{top:3.5px}.film::after{bottom:3.5px}
+.film .frames{display:grid;gap:6px}
+.film img{width:100%;aspect-ratio:1376/736;object-fit:cover;border-radius:2px}
+
+/* ---------- hero showcase ---------- */
+.showcase{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.vtile{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.vtile.ours-t{border-color:var(--ours);box-shadow:0 0 0 2px var(--ours-bg)}
+.vtile header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--g100);border-bottom:1px solid var(--grid);font-weight:700;font-size:17px}
+.vtile.ours-t header{background:var(--ours-bg);color:var(--ours-dk)}
+.vtile video{width:100%;aspect-ratio:1376/736;object-fit:contain;background:#000}
+.vtile .video-placeholder{width:100%;aspect-ratio:1376/736;object-fit:contain;background:var(--g100)}
+.vtile .verdict{padding:6px 12px;min-height:34px;display:flex;align-items:center}
+.prompt-card{grid-column:1/-1;border:1.5px dashed var(--line);border-radius:10px;background:#fff;padding:12px 16px;font-size:17.5px;font-style:italic}
+.prompt-card .lbl{font-style:normal;font-weight:700;margin-right:6px}
+.obs-track{display:grid;grid-template-columns:1fr 3fr 1fr;gap:6px;margin-top:8px}
+.obs-track span{font-family:var(--serif);text-align:center;font-weight:700;font-size:15px;border-radius:6px;padding:3px 0;border:1.3px solid var(--line);background:var(--g200)}
+.obs-track span.h{background:var(--slate);border-color:var(--slate);color:#fff}
+.phys-bar{margin-top:6px;text-align:center;font-weight:700;font-size:15px;color:#17734A;background:#E7F5EE;border:1.3px solid #22A06B;border-radius:6px;padding:3px 0}
+.strip-caps{display:grid;gap:6px;margin-top:6px;font-style:italic;font-weight:700;font-size:15px;text-align:center}
+
+/* ---------- figures ---------- */
+figure{margin:0}
+.fig{border:1.5px solid var(--grid);border-radius:12px;padding:12px;background:#fff}
+.fig img{width:100%;border-radius:6px;cursor:zoom-in}
+.fig figcaption{font-size:16.5px;margin-top:10px}
+.fig figcaption b{font-weight:700}
+
+/* ---------- comparison player ---------- */
+.case-tabs{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:thin}
+.case-tab{flex:none;width:132px;border:1.5px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;padding:4px;text-align:left;font-family:var(--serif)}
+.case-tab img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px}
+.case-tab span{display:block;font-size:14.5px;font-weight:700;padding:3px 2px 0;line-height:1.2}
+.case-tab.on{border-color:var(--ours);box-shadow:0 0 0 2.5px var(--ours-bg)}
+.cmp-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.cmp-prompt{border:1.5px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:18px;font-style:italic;margin-bottom:12px;background:#fff}
+.cmp-prompt .lbl{font-style:normal;font-weight:700;margin-right:6px}
+.cmp-grid{display:grid;gap:12px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px;padding:8px 12px;border:1.5px solid var(--grid);border-radius:10px;background:var(--g100)}
+.controls button{font-family:var(--serif);font-size:16px;font-weight:700;border:1.5px solid var(--ink);background:#fff;border-radius:999px;padding:3px 14px;cursor:pointer}
+.controls button:hover{border-color:var(--ours-dk);color:var(--ours-dk)}
+.controls input[type=range]{flex:1;min-width:140px;accent-color:var(--ours)}
+.controls select{font-family:var(--serif);font-size:15px;border:1.5px solid var(--line);border-radius:7px;padding:2px 6px;background:#fff}
+.controls .t{font-variant-numeric:tabular-nums;font-size:15px;min-width:92px}
+
+/* ---------- gallery ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.filters button{font-family:var(--serif);font-size:15.5px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:3px 13px;cursor:pointer}
+.filters button.on{background:var(--ours);border-color:var(--ours);color:#fff;font-weight:700}
+.filters .sep{width:1px;background:var(--grid);margin:0 4px}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.gcard{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.gcard .vid{position:relative;background:#000}
+.gcard video{width:100%;aspect-ratio:16/9;object-fit:cover}
+.gcard .who{position:absolute;left:8px;top:8px;display:flex;gap:4px}
+.gcard .who button{font-family:var(--serif);font-size:13px;font-weight:700;border:0;border-radius:999px;padding:2px 9px;cursor:pointer;background:rgba(255,255,255,.88);color:var(--ink)}
+.gcard .who button.on{background:var(--ours);color:#fff}
+.gcard .who button.on.base{background:var(--bad)}
+.gcard .body{padding:9px 12px 12px;display:flex;flex-direction:column;gap:7px;flex:1}
+.gcard h4{margin:0;font-size:18px;line-height:1.25}
+.gcard .tags{display:flex;flex-wrap:wrap;gap:5px}
+.gcard .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.gcard .foot button{font-family:var(--serif);font-size:15px;font-weight:700;border:1.5px solid var(--ours);color:var(--ours-dk);background:#fff;border-radius:999px;padding:2px 12px;cursor:pointer}
+.gcard .foot button:hover{background:var(--ours-bg)}
+@media (max-width:980px){.gallery{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.gallery{grid-template-columns:1fr}.showcase{grid-template-columns:1fr}h1.title{font-size:31px}.hero-card{padding:24px 16px}}
+
+/* ---------- comparison rows / gallery rows ---------- */
+.row-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px}
+.row-head strong{font-size:20px;margin-right:4px}
+.cmp4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.vtile header{white-space:nowrap}
+.vtile header .chip{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.vtile{container-type:inline-size}
+@container (max-width:270px){.vtile header .chip{display:none}}
+.cmp4 .vtile header{font-size:16px;padding:6px 10px;gap:6px}
+.cmp4 .vtile header .chip{font-size:12.5px;padding:1px 7px}
+.grow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+.grow.single{grid-template-columns:minmax(0,1fr)}
+.gcase{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start}
+.gcase>.row-head{align-self:start}
+.grow.single .gcase{max-width:calc(50% - 11px)}
+.gcase .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.group-label{display:flex;align-items:center;gap:10px;margin:6px 0 16px;font-size:20px;font-weight:700}
+.group-label .chip{font-size:15px}
+.group-sep{border:0;border-top:2px dotted var(--grid);margin:8px 0 26px}
+details.pp{margin:0 0 10px;border:1.5px dashed var(--line);border-radius:10px;background:#fff}
+details.pp summary{cursor:pointer;padding:6px 12px;font-weight:700;font-size:16px;list-style:none;display:flex;align-items:center;gap:8px}
+details.pp summary::-webkit-details-marker{display:none}
+details.pp summary::before{content:"▸";font-size:13px;transition:transform .15s}
+details.pp[open] summary::before{transform:rotate(90deg)}
+details.pp .ptext{padding:0 14px 10px;font-size:16.5px;font-style:italic}
+details.pp .ptext .lbl{font-style:normal;font-weight:700;margin-right:6px}
+details.pp .ptext.pstar{border-top:1px dotted var(--grid);padding-top:8px;font-style:normal}
+details.pp .ptext .note{display:block;font-size:14.5px;font-style:italic;margin-top:4px}
+@media (max-width:960px){.cmp4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.grow{grid-template-columns:minmax(0,1fr)}.grow.single .gcase{max-width:none}}
+@media (max-width:620px){.controls{gap:8px}.controls .t{min-width:0}.row-head strong{font-size:18px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ---------- tables / bibtex ---------- */
+table.res{width:100%;border-collapse:collapse;font-size:17px;background:#fff}
+table.res th,table.res td{padding:8px 10px;border-bottom:1px solid var(--grid);text-align:center}
+table.res th{background:var(--g100);font-weight:700}
+table.res td:first-child,table.res th:first-child{text-align:left}
+table.res{font-variant-numeric:tabular-nums}
+table.res caption{caption-side:top;text-align:left;font-size:16.5px;font-weight:700;padding:10px 12px;background:#fff;border-bottom:1px solid var(--grid)}
+table.res thead th{font-size:16px;line-height:1.25;vertical-align:bottom}
+table.res thead th.sup{border-bottom:1px solid var(--line);vertical-align:middle}
+table.res tbody th{font-weight:400;text-align:left;white-space:nowrap;padding:7px 12px;border-bottom:1px solid var(--grid);background:#fff}
+table.res tbody td{padding:7px 10px}
+table.res td.b{font-weight:700}
+table.res tr.grp td{text-align:left;font-style:italic;background:#fff;padding:9px 12px 5px;border-bottom:1px solid var(--grid)}
+table.res tr.ours th,table.res tr.ours td{background:var(--ours-bg);color:var(--ink)}
+table.res tr.ours th{font-weight:700;color:var(--ours-dk)}
+table.res tr.total th,table.res tr.total td{border-top:1.5px solid var(--ink);font-weight:700}
+table.res tbody tr:last-child th,table.res tbody tr:last-child td{border-bottom:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:4px 0 22px}
+.stat{border:1.5px solid var(--grid);border-left:5px solid var(--ours);border-radius:12px;background:#fff;padding:12px 14px}
+.stat b{display:block;font-size:28px;line-height:1.15;color:var(--ours-dk);margin-bottom:4px}
+.stat span{font-size:16px;line-height:1.4;display:block}
+.tbl-title{font-size:22px;margin:24px 0 10px}
+.tbl-note{font-size:16px;margin:10px 0 0}
+.tbl-desc{font-size:16.5px;margin:0 0 12px}
+.rtabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.rtabs button{font-family:var(--serif);font-size:16px;font-weight:700;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:4px 15px;cursor:pointer}
+.rtabs button[aria-selected="true"]{background:var(--ours);border-color:var(--ours);color:#fff}
+.rtabs button:focus-visible,.rpanel:focus-visible{outline:2px solid var(--ours-dk);outline-offset:2px}
+.rpanel{margin-bottom:6px}
+.js .rpanel[hidden]{display:none}
+@media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.stats{grid-template-columns:minmax(0,1fr)}.stat b{font-size:25px}}
+.tbl-wrap{overflow-x:auto;border:1.5px solid var(--grid);border-radius:12px}
+pre.bib{background:var(--g100);border:1.5px solid var(--grid);border-radius:12px;padding:16px;font-size:14.5px;overflow-x:auto;position:relative;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.5;margin:0}
+.copy{position:absolute;right:10px;top:10px}
+footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font-size:15.5px;text-align:center}
+
+/* ---------- lightbox ---------- */
+.lb{position:fixed;inset:0;background:rgba(17,17,17,.88);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
+.lb.on{display:flex}
+.lb img{max-width:96vw;max-height:92vh;border-radius:6px;background:#fff}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="PhyEvolve home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="9" width="18" height="14" rx="3" fill="#BAE6FD"/><rect x="6" y="6" width="18" height="14" rx="3" fill="#7DD3FC"/><rect x="10" y="3" width="19" height="15" rx="3" fill="#1E9FD0"/><path d="M17 7l6 3.5-6 3.5z" fill="#fff"/></svg>
+      PhyEvolve
+    </a>
+    <div class="links">
+      <a href="#showcase">Showcase</a><a href="#method">Method</a><a href="#compare">Comparisons</a>
+      <a href="#gallery">Gallery</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================================================================ HERO -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-card">
+      <div class="venue"><!-- TODO --> Under review · 2026</div>
+      <h1 class="title"><span class="name">PhyEvolve</span>: <span class="nw">Multi-Agent</span> <span class="nw">State-Evolution</span> Planning for <span class="nw">Physics-Aware</span> Video Generation</h1>
+      <div class="authors">
+        <span class="au">Yang-Hao Zhou<sup>†</sup></span>
+        <span class="au">Lixing Tan<sup>†</sup></span>
+        <span class="au">Zhiqi Li</span>
+        <span class="au">Guang Yang</span>
+        <span class="au">Xiao Yang<sup>∗,‡</sup></span>
+      </div>
+      <div class="affil">Canva Research</div>
+      <div class="au-notes"><sup>†</sup>Equal contribution &nbsp;·&nbsp; <sup>∗</sup>Corresponding author &nbsp;·&nbsp; <sup>‡</sup>Project leader</div>
+      <div class="btns">
+        <!-- TODO: replace href="#" with real links -->
+        <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3v5h5"/></svg>Paper</a>
+        <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>arXiv</a>
+        <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 3 .8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>Code</a>
+        <a class="btn ghost" href="assets/paper/PhyEvolve_overview.pdf">Overview figure (PDF)</a>
+        <a class="btn ghost" href="#bibtex">BibTeX</a>
+      </div>
+      <p class="tldr">We formulate prompt enhancement for physics-aware video generation as semantic completion
+        through structured state-evolution planning. In <b>PhyEvolve</b>, a <b>Director</b> disentangles physical events from observation changes,
+        a <b>Physical Evolver</b> constructs causally linked state transitions that unfold whether visible or not, and a <b>Composer</b> expresses them
+        in a replacement prompt. Without retraining or modifying the generator, PhyEvolve outperforms the strongest prior agentic baseline
+        by 7.9 points on average across four benchmarks.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ================================================================ SHOWCASE -->
+<section id="showcase">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">1</span><h2>What happens behind the curtain?</h2></div>
+    <p class="sec-sub">The curtain only changes what the camera sees. The foam keeps expanding while hidden, so when the curtain rises the scene must reveal the state it has reached — not restart.</p>
+
+    <div class="film"><div class="frames" style="grid-template-columns:repeat(5,1fr)">
+      <img src="assets/img/foam/t_1_5.jpg" alt="1.5 s, bowl filling" loading="lazy">
+      <img src="assets/img/foam/t_3_3.jpg" alt="3.3 s, curtain drops" loading="lazy">
+      <img src="assets/img/foam/t_5.jpg" alt="5 s, out of sight" loading="lazy">
+      <img src="assets/img/foam/t_7_2.jpg" alt="7.2 s, curtain rises" loading="lazy">
+      <img src="assets/img/foam/t_7_9.jpg" alt="7.9 s, foam overflowed" loading="lazy">
+    </div></div>
+    <div class="strip-caps" style="grid-template-columns:repeat(5,1fr)">
+      <span>1.5 s · Bowl filling</span><span>3.3 s · Curtain drops</span><span>5 s · Out of sight</span><span>7.2 s · Curtain rises</span><span>7.9 s · Foam overflowed</span>
+    </div>
+    <div class="obs-track"><span>Visible</span><span class="h">Hidden (curtain)</span><span>Visible</span></div>
+    <div class="phys-bar">Physical evolution continues: dispensing and expansion go on while hidden</div>
+
+    <div class="showcase" id="hero-pair">
+      <div class="prompt-card"><span class="lbl">Input prompt <em>P</em>:</span>
+        “While <span class="e">the hand</span> <span class="p">keeps pressing the trigger</span>, <span class="e">a heavy curtain</span> drops from the ceiling between the camera and the bowl,
+        completely blocking <span class="e">the bowl and spray can</span> from view, without touching or interacting with any object in the scene … After a pause, the curtain rises.”</div>
+      <div class="vtile"><header>Minimax-H3 <span class="chip tag">original prompt</span></header>
+        <video muted playsinline loop preload="metadata" poster="assets/videos/foam/h3.jpg" src="assets/videos/foam/h3.mp4"></video></div>
+      <div class="vtile ours-t"><header>PhyEvolve <span class="chip bench">refined prompt</span></header>
+        <video muted playsinline loop preload="metadata" poster="assets/videos/foam/ours.jpg" src="assets/videos/foam/ours.mp4"></video>
+        <div class="verdict"><span class="pill ok">✓ Foam overflows while hidden</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ TEASER -->
+<section id="teaser">
+  <div class="wrap">
+    <figure class="fig">
+      <img src="assets/img/figures/teaser.jpg" alt="Teaser: single model vs PhyEvolve on thermal, chemical, causal and force states" loading="lazy" data-zoom>
+      <figcaption><b>A single model renders a moment; PhyEvolve plans an evolution.</b> For each request, PhyEvolve infers the physical state that must change
+        (thermal, chemical, causal or force) and writes it into the prompt, so the same frozen generator produces the progression the text implies.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================================================================ METHOD -->
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">2</span><h2>Method</h2></div>
+    <figure class="fig">
+      <img src="assets/img/figures/method_overview.jpg" alt="Overview of PhyEvolve: Director, Physical Evolver and Composer turn the input prompt and optional first frame into a refined prompt for a frozen video generator" loading="lazy" data-zoom>
+      <figcaption><b>Overview of PhyEvolve.</b> The Director separates actions from observations, the Physical Evolver models causal state evolution under occlusion,
+        and the Composer refines prompts for physically consistent video generation. The refined prompt replaces the original one; the video generator is not retrained or modified.
+        Click to enlarge · <a href="assets/paper/PhyEvolve_overview.pdf">vector PDF</a>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================================================================ COMPARISONS -->
+<section id="compare">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">3</span><h2>Side-by-side comparisons</h2></div>
+    <p class="sec-sub" id="cmpBlurb">Four methods in each row: Minimax-H3 (original prompt), NEWTON, Co-Director and PhyEvolve. Each row has its own shared playback controls.</p>
+    <div id="comparisonRows"></div>
+  </div>
+</section>
+
+<!-- ================================================================ GALLERY -->
+<section id="gallery">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">4</span><h2>Gallery</h2></div>
+    <p class="sec-sub" id="galBlurb">Two events per row. Each pair compares Minimax-H3 on the original prompt with PhyEvolve. Events are distinct from the comparisons above.</p>
+    <div id="galleryRows"></div>
+  </div>
+</section>
+
+<!-- ================================================================ RESULTS -->
+<section id="results">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">5</span><h2>Quantitative results</h2></div>
+    <p class="sec-sub">NEWTON, Co-Director and PhyEvolve all run on the same frozen Minimax-H3 generator; PhyEvolve only replaces the prompt.
+      All scores are percentages, higher is better, and the best value in each column is bold.</p>
+    <div class="stats">
+      <div class="stat"><b>+7.9</b><span>points over NEWTON, the strongest prior agentic baseline, averaged over four benchmarks</span></div><div class="stat"><b>+14.9</b><span>points over direct Minimax-H3 generation on the same four-benchmark average</span></div><div class="stat"><b>45.7%</b><span>StEvo-Bench Evolution Success, up from 17.7% with the original prompt</span></div><div class="stat"><b>452.5 s</b><span>end-to-end with 6.1 LLM calls and 17.0k tokens, 75.2% less runtime than NEWTON</span></div>
+    </div>
+
+    <h3 class="tbl-title">Main results</h3>
+    <div class="tbl-wrap"><table class="res" id="tbl-main">
+<caption>Table 1: Unified evaluation of video generators and agentic frameworks across physical-video benchmarks.</caption><thead>
+<tr><th scope="col">Method</th><th scope="col">Type</th><th scope="col">StEvo-Bench<br>Evo. Success ↑</th><th scope="col">PhyGenBench<br>Average ↑</th><th scope="col">PhyWorldBench<br>Overall Both ↑</th><th scope="col">VideoPhy-2<br>All Joint ↑</th><th scope="col">Average ↑</th></tr>
+</thead><tbody>
+<tr class="grp"><td colspan="7">Open-source video generators</td></tr>
+<tr><th scope="row">Wan2.2-TI2V-5B</th><td>Video generator</td><td>0.9</td><td>66.7</td><td>15.0</td><td>24.9</td><td>26.9</td></tr>
+<tr><th scope="row">LTX-Video-2.5</th><td>Video generator</td><td>0.9</td><td>64.6</td><td>16.5</td><td>22.2</td><td>26.1</td></tr>
+<tr><th scope="row">Minimax-H3</th><td>Video generator</td><td>17.7</td><td>63.5</td><td>66.6</td><td>23.9</td><td>42.9</td></tr>
+<tr class="grp"><td colspan="7">H3-based systems</td></tr>
+<tr><th scope="row">NEWTON</th><td>Agentic framework</td><td>29.0</td><td>77.5</td><td>69.9</td><td>23.2</td><td>49.9</td></tr>
+<tr><th scope="row">Co-Director</th><td>Agentic framework</td><td>20.0</td><td>75.4</td><td>65.8</td><td>24.9</td><td>46.5</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td>Agentic framework</td><td class="b">45.7</td><td class="b">79.6</td><td class="b">75.8</td><td class="b">30.1</td><td class="b">57.8</td></tr>
+</tbody></table></div>
+
+    <h3 class="tbl-title">Detailed results</h3>
+    <div class="rtabs" role="tablist" aria-label="Detailed results">
+      <button type="button" role="tab" id="tab-stevo" aria-controls="panel-stevo" aria-selected="true" tabindex="0">StEvo-Bench</button><button type="button" role="tab" id="tab-phygen" aria-controls="panel-phygen" aria-selected="false" tabindex="-1">PhyGenBench</button><button type="button" role="tab" id="tab-phyworld" aria-controls="panel-phyworld" aria-selected="false" tabindex="-1">PhyWorldBench</button><button type="button" role="tab" id="tab-videophy" aria-controls="panel-videophy" aria-selected="false" tabindex="-1">VideoPhy-2</button><button type="button" role="tab" id="tab-ablation" aria-controls="panel-ablation" aria-selected="false" tabindex="-1">Ablation</button><button type="button" role="tab" id="tab-user" aria-controls="panel-user" aria-selected="false" tabindex="-1">User study</button><button type="button" role="tab" id="tab-efficiency" aria-controls="panel-efficiency" aria-selected="false" tabindex="-1">Efficiency</button>
+    </div>
+    <div class="rpanel" role="tabpanel" id="panel-stevo" aria-labelledby="tab-stevo" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-stevo">
+<caption>Table 2: StEvo-Bench, state evolution and control metrics (%).</caption><thead>
+<tr><th scope="col">Model</th><th scope="col">Evo.<br>Success ↑</th><th scope="col">Prog. ↑</th><th scope="col">Phys. ↑</th><th scope="col">Coh. ↑</th><th scope="col">Obs.<br>Ctrl. ↑</th><th scope="col">Act.<br>Ctrl. ↑</th></tr>
+</thead><tbody>
+<tr class="grp"><td colspan="7">Open-source video generators</td></tr>
+<tr><th scope="row">Wan2.2-TI2V-5B</th><td>0.9</td><td>10.9</td><td>51.6</td><td>62.4</td><td>45.7</td><td>54.3</td></tr>
+<tr><th scope="row">LTX-Video-2.5</th><td>0.9</td><td>14.0</td><td>66.5</td><td class="b">95.0</td><td>55.9</td><td>56.8</td></tr>
+<tr><th scope="row">Minimax-H3</th><td>17.7</td><td>25.3</td><td>70.6</td><td>88.2</td><td>87.6</td><td>81.5</td></tr>
+<tr class="grp"><td colspan="7">H3-based agentic frameworks</td></tr>
+<tr><th scope="row">NEWTON</th><td>29.0</td><td>36.8</td><td>93.4</td><td>93.2</td><td>89.3</td><td>80.7</td></tr>
+<tr><th scope="row">Co-Director</th><td>20.0</td><td>42.0</td><td>72.0</td><td>94.0</td><td>83.7</td><td>83.3</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">45.7</td><td class="b">51.2</td><td class="b">96.8</td><td>94.6</td><td class="b">89.5</td><td class="b">85.2</td></tr>
+</tbody></table></div></div><div class="rpanel" role="tabpanel" id="panel-phygen" aria-labelledby="tab-phygen" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-phygen">
+<caption>Table 3: PhyGenBench, physical commonsense accuracy (%).</caption><thead>
+<tr><th scope="col">Model</th><th scope="col">Mechanics ↑</th><th scope="col">Optics ↑</th><th scope="col">Thermal ↑</th><th scope="col">Material ↑</th><th scope="col">Average ↑</th></tr>
+</thead><tbody>
+<tr class="grp"><td colspan="6">Open-source video generators</td></tr>
+<tr><th scope="row">CogVideoX-2B</th><td>38.0</td><td>43.0</td><td>34.0</td><td>39.0</td><td>39.0</td></tr>
+<tr><th scope="row">CogVideoX-5B</th><td>39.0</td><td>55.0</td><td>40.0</td><td>42.0</td><td>45.0</td></tr>
+<tr><th scope="row">Open-Sora V1.2</th><td>43.0</td><td>50.0</td><td>44.0</td><td>37.0</td><td>44.0</td></tr>
+<tr><th scope="row">Lavie</th><td>30.0</td><td>44.0</td><td>38.0</td><td>32.0</td><td>36.0</td></tr>
+<tr><th scope="row">Vchitect 2.0</th><td>41.0</td><td>56.0</td><td>44.0</td><td>37.0</td><td>45.0</td></tr>
+<tr><th scope="row">Wan2.2-TI2V-5B</th><td>66.7</td><td>82.0</td><td>57.8</td><td>54.2</td><td>66.7</td></tr>
+<tr><th scope="row">LTX-Video-2.5</th><td>64.2</td><td>70.7</td><td>58.9</td><td>61.7</td><td>64.6</td></tr>
+<tr><th scope="row">Minimax-H3</th><td>59.2</td><td>78.0</td><td>57.8</td><td>54.2</td><td>63.5</td></tr>
+<tr class="grp"><td colspan="6">Closed-source video generators</td></tr>
+<tr><th scope="row">Pika</th><td>35.0</td><td>56.0</td><td>43.0</td><td>39.0</td><td>44.0</td></tr>
+<tr><th scope="row">Gen-3</th><td>45.0</td><td>57.0</td><td>49.0</td><td>51.0</td><td>51.0</td></tr>
+<tr><th scope="row">Kling</th><td>45.0</td><td>58.0</td><td>50.0</td><td>40.0</td><td>49.0</td></tr>
+<tr class="grp"><td colspan="6">H3-based agentic frameworks</td></tr>
+<tr><th scope="row">NEWTON</th><td>70.0</td><td class="b">89.3</td><td>76.7</td><td>70.8</td><td>77.5</td></tr>
+<tr><th scope="row">Co-Director</th><td>69.2</td><td>80.7</td><td>76.7</td><td>74.2</td><td>75.4</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">73.3</td><td>84.7</td><td class="b">82.2</td><td class="b">77.5</td><td class="b">79.6</td></tr>
+</tbody></table></div></div><div class="rpanel" role="tabpanel" id="panel-phyworld" aria-labelledby="tab-phyworld" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-phyworld">
+<caption>Table 4: PhyWorldBench, physics-category results (%). All scores use the Both metric.</caption><thead>
+<tr><th scope="col">Model</th><th scope="col">Fundamental<br>Physics ↑</th><th scope="col">Composite<br>Physics ↑</th><th scope="col">Anti-Physics ↑</th><th scope="col">Overall<br>Performance ↑</th></tr>
+</thead><tbody>
+<tr class="grp"><td colspan="5">Closed-source video generators</td></tr>
+<tr><th scope="row">Sora-Turbo</th><td>24.6</td><td>18.8</td><td>3.9</td><td>20.8</td></tr>
+<tr><th scope="row">Gen-3</th><td>16.1</td><td>10.3</td><td>2.0</td><td>13.0</td></tr>
+<tr><th scope="row">Kling-1.6</th><td>23.5</td><td>13.9</td><td>4.2</td><td>18.8</td></tr>
+<tr><th scope="row">Pika 2.0</th><td>31.2</td><td>23.9</td><td>1.1</td><td>26.2</td></tr>
+<tr><th scope="row">Luma</th><td>22.0</td><td>16.0</td><td>0.0</td><td>18.4</td></tr>
+<tr class="grp"><td colspan="5">Open-source video generators</td></tr>
+<tr><th scope="row">Hunyuan 720p</th><td>20.5</td><td>19.9</td><td>1.0</td><td>18.5</td></tr>
+<tr><th scope="row">Open-Sora 2.0</th><td>20.5</td><td>15.4</td><td>1.0</td><td>17.0</td></tr>
+<tr><th scope="row">Open-Sora-Plan 1.3</th><td>9.6</td><td>4.4</td><td>3.9</td><td>7.5</td></tr>
+<tr><th scope="row">CogVideoX-1.5</th><td>19.2</td><td>15.4</td><td>0.0</td><td>16.3</td></tr>
+<tr><th scope="row">Step-video-T2V</th><td>18.9</td><td>19.1</td><td>2.0</td><td>17.3</td></tr>
+<tr><th scope="row">Wanx-2.1</th><td>22.0</td><td>18.7</td><td>1.1</td><td>18.9</td></tr>
+<tr><th scope="row">LTX-Video</th><td>8.0</td><td>4.2</td><td>0.0</td><td>6.2</td></tr>
+<tr><th scope="row">Wan2.2-TI2V-5B</th><td>17.9</td><td>14.0</td><td>1.0</td><td>15.0</td></tr>
+<tr><th scope="row">LTX-Video-2.5</th><td>19.4</td><td>15.9</td><td>1.0</td><td>16.5</td></tr>
+<tr><th scope="row">Minimax-H3</th><td>70.2</td><td>65.9</td><td>47.6</td><td>66.6</td></tr>
+<tr class="grp"><td colspan="5">H3-based agentic frameworks</td></tr>
+<tr><th scope="row">NEWTON</th><td>73.5</td><td>70.1</td><td>47.6</td><td>69.9</td></tr>
+<tr><th scope="row">Co-Director</th><td>69.4</td><td>69.8</td><td>33.7</td><td>65.8</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">79.2</td><td class="b">76.1</td><td class="b">54.3</td><td class="b">75.8</td></tr>
+</tbody></table></div></div><div class="rpanel" role="tabpanel" id="panel-videophy" aria-labelledby="tab-videophy" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-videophy">
+<caption>Table 5: VideoPhy-2, automatic evaluation under the NEWTON reporting protocol (%).</caption><thead>
+<tr><th rowspan="2" scope="col">Method</th><th colspan="3" scope="colgroup" class="sup">All</th><th colspan="3" scope="colgroup" class="sup">Hard</th></tr><tr><th scope="col">PC ↑</th><th scope="col">SA ↑</th><th scope="col">Joint ↑</th><th scope="col">PC ↑</th><th scope="col">SA ↑</th><th scope="col">Joint ↑</th></tr>
+</thead><tbody>
+<tr class="grp"><td colspan="7">Open-source video generators</td></tr>
+<tr><th scope="row">Cosmos-Predict2.5</th><td>58.6</td><td>28.3</td><td>22.7</td><td>46.1</td><td>12.2</td><td>7.8</td></tr>
+<tr><th scope="row">HunyuanVideo</th><td>73.6</td><td>25.3</td><td>22.5</td><td>63.3</td><td>8.9</td><td>6.7</td></tr>
+<tr><th scope="row">CogVideoX-5B</th><td>69.2</td><td>30.2</td><td>25.9</td><td>54.4</td><td>9.4</td><td>5.0</td></tr>
+<tr><th scope="row">LTX-Video-2.5</th><td>54.7</td><td>28.8</td><td>22.2</td><td>40.7</td><td>8.9</td><td>3.9</td></tr>
+<tr><th scope="row">LTX-Video-2B</th><td>74.3</td><td>22.9</td><td>21.4</td><td>63.3</td><td>6.7</td><td>4.4</td></tr>
+<tr><th scope="row">Wan2.2-TI2V-5B</th><td>56.7</td><td>29.6</td><td>24.9</td><td>37.8</td><td>10.6</td><td>7.2</td></tr>
+<tr><th scope="row">Minimax-H3</th><td>69.5</td><td>29.8</td><td>23.9</td><td>62.2</td><td>7.2</td><td>4.4</td></tr>
+<tr class="grp"><td colspan="7">H3-based agentic frameworks</td></tr>
+<tr><th scope="row">NEWTON</th><td>72.5</td><td>29.0</td><td>23.2</td><td>71.5</td><td>7.8</td><td>6.7</td></tr>
+<tr><th scope="row">Co-Director</th><td>55.8</td><td>30.1</td><td>24.9</td><td>38.3</td><td>10.0</td><td>5.0</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">83.9</td><td class="b">34.5</td><td class="b">30.1</td><td class="b">84.4</td><td class="b">14.4</td><td class="b">12.8</td></tr>
+</tbody></table></div></div><div class="rpanel" role="tabpanel" id="panel-ablation" aria-labelledby="tab-ablation" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-ablation">
+<caption>Table 6: Component ablation on StEvo-Bench (%).</caption><thead>
+<tr><th scope="col">Variant</th><th scope="col">Evo.<br>Success ↑</th><th scope="col">Prog. ↑</th><th scope="col">Phys. ↑</th><th scope="col">Coh. ↑</th><th scope="col">Obs.<br>Ctrl. ↑</th><th scope="col">Act.<br>Ctrl. ↑</th></tr>
+</thead><tbody>
+<tr><th scope="row">Baseline (original prompt)</th><td>17.7</td><td>25.3</td><td>70.6</td><td>88.2</td><td>87.6</td><td>81.5</td></tr>
+<tr><th scope="row">w/o Director</th><td>45.3</td><td>51.2</td><td>93.7</td><td>94.6</td><td>82.4</td><td>82.4</td></tr>
+<tr><th scope="row">w/o Physical Evolver</th><td>29.0</td><td>38.0</td><td>72.3</td><td>94.5</td><td>88.4</td><td>78.6</td></tr>
+<tr><th scope="row">w/o Composer</th><td>44.3</td><td class="b">51.5</td><td>93.7</td><td>94.6</td><td>89.3</td><td>84.9</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">45.7</td><td>51.2</td><td class="b">96.8</td><td>94.6</td><td class="b">89.5</td><td class="b">85.2</td></tr>
+</tbody></table></div><figure class="fig" style="margin:16px auto 0;max-width:780px"><img src="assets/img/figures/ablation_paper_fig3.jpg" alt="Component ablation on a falling glass hidden by a curtain" loading="lazy" data-zoom><figcaption><b>Component ablation on a scene where a falling glass is occluded by a curtain.</b></figcaption></figure><div style="margin-top:16px"><div class="tbl-wrap"><table class="res" id="tbl-backbone">
+<caption>Table 7: Agent-backbone comparison on PhyGenBench (%).</caption><thead>
+<tr><th scope="col">Agent backbone</th><th scope="col">Mechanics ↑</th><th scope="col">Optics ↑</th><th scope="col">Thermal ↑</th><th scope="col">Material ↑</th><th scope="col">Average ↑</th></tr>
+</thead><tbody>
+<tr><th scope="row">InternVL3.5-30B</th><td>71.7</td><td class="b">87.3</td><td>76.7</td><td>70.8</td><td>77.3</td></tr>
+<tr><th scope="row">Qwen3.5-9B</th><td>67.5</td><td>84.0</td><td>81.1</td><td>75.8</td><td>77.3</td></tr>
+<tr class="ours"><th scope="row">Qwen3-VL-32B</th><td class="b">73.3</td><td>84.7</td><td class="b">82.2</td><td class="b">77.5</td><td class="b">79.6</td></tr>
+</tbody></table></div></div></div><div class="rpanel" role="tabpanel" id="panel-user" aria-labelledby="tab-user" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-user">
+<caption>Table 8: User preference for PhyEvolve over each baseline. Each entry is the percentage of votes favoring PhyEvolve.</caption><thead>
+<tr><th rowspan="2" scope="col">Benchmark</th><th colspan="2" scope="colgroup" class="sup">vs. Minimax-H3</th><th colspan="2" scope="colgroup" class="sup">vs. NEWTON</th></tr><tr><th scope="col">Video</th><th scope="col">Physics</th><th scope="col">Video</th><th scope="col">Physics</th></tr>
+</thead><tbody>
+<tr><th scope="row">StEvo-Bench</th><td>81.0</td><td>81.0</td><td>83.8</td><td>83.8</td></tr>
+<tr><th scope="row">PhyGenBench</th><td>90.6</td><td>89.4</td><td>81.3</td><td>82.5</td></tr>
+<tr><th scope="row">PhyWorldBench</th><td>60.6</td><td>66.9</td><td>69.4</td><td>70.6</td></tr>
+<tr><th scope="row">VideoPhy-2</th><td>66.3</td><td>63.8</td><td>66.9</td><td>61.9</td></tr>
+<tr class="total"><th scope="row">Overall</th><td>74.6</td><td>75.3</td><td>75.4</td><td>74.7</td></tr>
+</tbody></table></div></div><div class="rpanel" role="tabpanel" id="panel-efficiency" aria-labelledby="tab-efficiency" tabindex="0"><div class="tbl-wrap"><table class="res" id="tbl-efficiency">
+<caption>Table 9: Efficiency comparison with Minimax-H3 held fixed as the video generator.</caption><thead>
+<tr><th scope="col">Method</th><th scope="col">LLM calls ↓</th><th scope="col">Tokens (k) ↓</th><th scope="col">End-to-end (s) ↓</th></tr>
+</thead><tbody>
+<tr><th scope="row">NEWTON</th><td>7.8</td><td>54.3</td><td>1826.5</td></tr>
+<tr><th scope="row">Co-Director</th><td>8.0</td><td>20.2</td><td>1009.6</td></tr>
+<tr class="ours"><th scope="row">PhyEvolve</th><td class="b">6.1</td><td class="b">17.0</td><td class="b">452.5</td></tr>
+</tbody></table></div></div>
+  </div>
+</section>
+
+<!-- ================================================================ BIBTEX -->
+<section id="bibtex">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">6</span><h2>BibTeX</h2></div>
+    <pre class="bib" id="bibText"><button class="btn ghost copy" type="button" id="copyBib">Copy</button>@article{zhou2026phyevolve,
+  title   = {PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation},
+  author  = {Zhou, Yang-Hao and Tan, Lixing and Li, Zhiqi and Yang, Guang and Yang, Xiao},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2026}
+}</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Videos are generated by a frozen Minimax-H3 with the original prompt (baseline) or the PhyEvolve prompt. Baselines: NEWTON, Co-Director.<br>
+    <!-- TODO: acknowledgements / license -->
+    © 2026 Yang-Hao Zhou, Lixing Tan, Zhiqi Li, Guang Yang and Xiao Yang · Canva Research.
+  </div>
+</footer>
+
+<div class="lb" id="lightbox" role="dialog" aria-label="Enlarged figure"><img alt=""></div>
+
+<script>
+/* ======================================================================
+   Case data — edit here to add / remove cases.
+   Videos live in assets/videos/<id>/<method>.mp4 (+ .jpg poster).
+   prompt markup: [e:entity]  [p:physical change]
+   kind: "source" = benchmark prompt, "summary" = short description
+   ====================================================================== */
+const METHODS = {
+  h3:         {label:"Minimax-H3", sub:"original prompt"},
+  newton:     {label:"NEWTON", sub:"baseline"},
+  codirector: {label:"Co-Director", sub:"baseline"},
+  ours:       {label:"PhyEvolve", sub:"ours"}
+};
+const CASES = [
+  {id:"foam", title:"Foam keeps expanding behind a curtain", bench:"StEvo-Bench", tags:["Out of sight","Material"], kind:"source",
+   prompt:"While [e:the hand] [p:keeps pressing the trigger], [e:a heavy curtain] drops from the ceiling between the camera and the bowl, completely blocking [e:the bowl and spray can] from view, without touching or interacting with any object in the scene, for a prolonged duration. After a pause, the curtain rises. The camera remains stationary; no scene cuts; no new people or objects enter the scene.",
+   methods:["h3","codirector","ours"], notes:{ours:["Foam overflows while hidden",true]}},
+  {id:"shrimp", title:"Shrimp keep cooking behind cardboard", bench:"StEvo-Bench", tags:["Out of sight","Thermal"], kind:"source",
+   prompt:"[e:A piece of cardboard] is held up in front of the camera view, completely blocking [e:the pan] from view, without touching or interacting with any object in the scene, for a prolonged duration. After a pause, the cardboard is lowered. The camera remains stationary; no scene cuts; no new people or objects enter the scene.",
+   methods:["h3","codirector","ours"], notes:{}},
+  {id:"ice", title:"Ice melts on a hot burner while hidden", bench:"StEvo-Bench", tags:["Out of sight","Thermal"], kind:"summary",
+   prompt:"[e:An ice cube] sits on [e:a glowing burner]; [e:a heavy curtain] drops to block the view without contact, then rises.",
+   methods:["h3","codirector","ours"], notes:{}},
+  {id:"towel", title:"Wicking continues in the dark", bench:"StEvo-Bench", tags:["Out of sight","Fluid"], kind:"summary",
+   prompt:"[e:A paper towel strip] dips into [e:blue water]; the light goes off, then back on.",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["No wicking progress",false],newton:["No wicking progress",false],codirector:["Wet front climbs",true],ours:["Wet front climbs",true]}},
+  {id:"sand", title:"A wave washes the sandcastle away in the dark", bench:"StEvo-Bench", tags:["Out of sight","Mechanics"], kind:"summary",
+   prompt:"[e:A large wave] [p:hits] [e:a sandcastle]; the light goes off, then back on.",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Castle still intact",false],newton:["Castle still intact",false],codirector:["Castle still intact",false],ours:["Castle washed away",true]}},
+  {id:"space", title:"Pouring water in a space station", bench:"PhyGenBench", tags:["Fluid","Mechanics"], kind:"source",
+   prompt:"[e:A cup of water] is [p:slowly poured out] in [e:the space station], [p:releasing the liquid into the surrounding area].",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Falls as a long stream",false],newton:["Water stays in glass",false],codirector:["No space station",false],ours:["Floating liquid blobs",true]}},
+  {id:"candle", title:"A burning candle ignites dry grass", bench:"PhyGenBench", tags:["Thermal","Chemical"], kind:"source",
+   prompt:"[e:A small burning candle] was [p:thrown into] [e:a pile of dry grass].",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Flame stays on candle",false],newton:["Grass never ignites",false],codirector:["Grass catches fire",true],ours:["Grass catches fire",true]}},
+  {id:"wax", title:"Wax melts as temperature rises", bench:"PhyGenBench", tags:["Thermal"], kind:"source",
+   prompt:"A timelapse captures the gradual transformation of [e:wax] as [p:the temperature rises significantly].",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Already molten, no change",false],newton:["Block slumps and melts",true],codirector:["Shape stays rigid",false],ours:["Melts and drips",true]}},
+  {id:"train", title:"A train at constant speed", bench:"Additional", tags:["Mechanics"], kind:"source",
+   prompt:"[e:A train] [p:moves along a straight track at constant speed].",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Camera moves, not the train",false],newton:["Moves at steady speed",true],codirector:["Stalls and turns glowing red",false],ours:["Moves at steady speed",true]}},
+  {id:"rocket", title:"A rocket launches vertically", bench:"Additional", tags:["Mechanics"], kind:"source",
+   prompt:"[e:A rocket] [p:launches vertically into the sky], travelling straight into the air.",
+   methods:["h3","newton","codirector","ours"],
+   notes:{h3:["Rises straight into the sky",true],newton:["Rocket body stays grounded",false],codirector:["Engines only; frame washes out",false],ours:["Lifts off vertically",true]}},
+  {id:"can", title:"A sealed can collapses under vacuum", bench:"PhyGenBench", tags:["Mechanics","Material"], kind:"source",
+   prompt:"A timelapse of [e:air] being [p:gradually and forcefully pulled out] of [e:an empty, thin, sealed aluminium can].",
+   methods:["h3","ours"], notes:{}},
+  {id:"apple", title:"Sulfuric acid on a slice of apple", bench:"PhyGenBench", tags:["Chemical"], kind:"source",
+   prompt:"A timelapse captures the [p:reaction] as [e:concentrated sulfuric acid] is poured onto [e:a slice of apple].",
+   methods:["h3","ours"], notes:{}}
+];
+
+// Existing inspected clips are retained; the remote Co-Director page requires sign-in.
+const MISSING_VIDEOS = new Set([]);
+const COMPARISON_IDS = ["towel", "sand", "train", "space", "wax", "candle", "rocket"];
+const COMPARISON_METHODS = ["h3", "newton", "codirector", "ours"];
+CASES.push(...[
+  {
+    "id": "spoon",
+    "title": "A spoon refracts at the water surface",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Optics"
+    ],
+    "kind": "source",
+    "prompt": "A silver spoon is slowly inserted into a glass of crystal-clear water, revealing the fascinating visual changes and reflections as the spoon interacts with the liquid.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pg_071"
+  },
+  {
+    "id": "glass",
+    "title": "A falling glass shatters behind a curtain",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:A heavy curtain] drops from the ceiling between the camera and [e:the glass], completely blocking [e:the glass] from view, without touching or interacting with any object in the scene, for a prolonged duration. After a pause, the curtain rises. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "falling_glass"
+  },
+  {
+    "id": "condensation",
+    "title": "Condensation accumulates on a cold can",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving [e:the can] in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "can_condensation"
+  },
+  {
+    "id": "fountain",
+    "title": "A fountain flows after an off-screen button press",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Fluid"
+    ],
+    "kind": "source",
+    "prompt": "The camera rotates right at constant speed until the spout exits the view. While the fountain spout is out of view, [e:a hand] [p:presses] [e:the push button] on the side of the fountain. Then the camera rotates left smoothly at the same rate back to the original viewpoint, bringing the fountain spout back into view. Smooth, continuous evolution with no scene changes or cuts.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "drinking_fountain_button"
+  },
+  {
+    "id": "dryice",
+    "title": "Dry ice sublimates as it warms",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse captures the transformation of [e:dry ice] as it [p:is exposed to a gradually increasing temperature] at room temperature",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pg_115"
+  },
+  {
+    "id": "spring",
+    "title": "A compressed spring releases a toy",
+    "bench": "PhyWorldBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "A spring-loaded toy is pressed down and released.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pw_082-1"
+  },
+  {
+    "id": "rice",
+    "title": "Tossed rice disperses and falls",
+    "bench": "PhyWorldBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:A handful of rice] [p:is tossed into the air], making [e:the rice grains] [p:arc through the air], [p:falling back to the ground] in a dispersed pattern.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pw_123-2"
+  },
+  {
+    "id": "fold",
+    "title": "Paper retains its folds",
+    "bench": "VideoPhy-2",
+    "tags": [
+      "Material"
+    ],
+    "kind": "source",
+    "prompt": "A person [p:folds] [e:a gift certificate], [p:placing] it into [e:a decorative envelope].",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "vp2f_0127"
+  },
+  {
+    "id": "swim",
+    "title": "A swimmer performs a backstroke",
+    "bench": "VideoPhy-2",
+    "tags": [
+      "Fluid"
+    ],
+    "kind": "source",
+    "prompt": "A person performs a backstroke, their arms moving rhythmically through the water, legs kicking in a coordinated pattern.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "vp2f_0475"
+  }
+]);
+CASES.push(...[
+  {
+    "id": "acidpaper",
+    "title": "Sulfuric acid reacts with paper",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Material"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse captures the reaction as [e:concentrated sulfuric acid] [p:is poured onto] [e:a sheet of paper].",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pg_152"
+  },
+  {
+    "id": "freezing",
+    "title": "Water freezes as the temperature drops",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse captures the transformation of [e:a glass of water] as [p:the temperature significantly drops to very low levels].",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pg_090"
+  },
+  {
+    "id": "rod",
+    "title": "A thin rod snaps while a thicker rod stays intact",
+    "bench": "PhyWorldBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:A small rod] [p:snaps under tension] while [e:a thicker rod] [p:stays intact].",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pw_278-1"
+  },
+  {
+    "id": "toycars",
+    "title": "Toy cars change motion after a collision",
+    "bench": "PhyWorldBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:Two toy cars] [p:collide] on a track, causing one to [p:spin] while the other [p:continues in a new direction]",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "pw_040-2"
+  }
+]);
+CASES.push(...[
+  {
+    "id": "mattress",
+    "title": "An air mattress deflates in the dark",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving [e:the mattress] in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "deflating_air_mattress"
+  },
+  {
+    "id": "tablet",
+    "title": "A tablet enters water and reacts in the dark",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Chemical"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving the cup in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {},
+    "event_key": "alka_seltzer_fizz"
+  }
+]);
+/* paper cases added from Figures 1, 9 and 10 */
+CASES.push(...[
+  {
+    "id": "ball",
+    "title": "A ball keeps rolling down a ramp behind a curtain",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:A heavy curtain] drops from the ceiling between the camera and [e:the ball], completely blocking the ball from view, without touching or interacting with any object in the scene, for a prolonged duration. After a pause, the curtain rises. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "event_key": "ball_roll_down_ramp",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "sprinkler",
+    "title": "A sprinkler stops after an off-screen valve closes",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Fluid"
+    ],
+    "kind": "summary",
+    "prompt": "[e:A sprinkler] waters dry grass; the camera pans to [e:the valve], [e:a hand] [p:turns it off], then pans back to the sprinkler.",
+    "event_key": "sprinkler_valve_control_opposite",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "napkin",
+    "title": "A paper napkin soaks through behind a curtain",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Fluid"
+    ],
+    "kind": "source",
+    "prompt": "[e:A heavy curtain] drops from the ceiling between the camera and the bowl, completely blocking [e:the bowl and napkin] from view, without touching or interacting with any object in the scene, for a prolonged duration. After a pause, the curtain rises. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "event_key": "dry_paper_on_water_curtain",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "tennis",
+    "title": "A tennis ball drops and bounces in the dark",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving [e:the ball and robot arm] in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "event_key": "bouncing_ball_rebound_lightoff",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "popcorn",
+    "title": "Popcorn kernels pop in the dark",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving [e:the pan with popcorns] in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "event_key": "popcorn_in_pan_lightoff",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "clay",
+    "title": "A wet clay pot dries and cracks in the dark",
+    "bench": "StEvo-Bench",
+    "tags": [
+      "Out of sight",
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "[e:The room lights] switch off, leaving [e:the terracotta pot and heating lamp] in complete darkness and completely invisible for a prolonged duration. After a pause, the lights turn back on. The camera remains stationary; no scene cuts; no new people or objects enter the scene. Smooth, continuous evolution with only objects present in the initial scene.",
+    "event_key": "clay_drying_lightoff",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "skier",
+    "title": "A speedboat tows a water skier",
+    "bench": "VideoPhy-2",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "A [e:speedboat] [p:tows] a [e:water skier] across a lake; the skier [p:grips the tow rope] and [p:glides behind].",
+    "event_key": "vp2f_0428",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "bottle",
+    "title": "A sealed plastic bottle crumples as air is extracted",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse of [e:air] being [p:gradually and forcefully extracted] from the mouth of [e:an empty, thin, sealed plastic bottle].",
+    "event_key": "pgb_016",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "balloon",
+    "title": "A sealed balloon shrivels as air is extracted",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Mechanics"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse of [e:air] being [p:gradually and forcefully extracted] from the interior of [e:a thin, sealed balloon].",
+    "event_key": "pgb_020",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "butter",
+    "title": "Butter melts as the temperature rises",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Thermal"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse captures the gradual transformation of [e:butter] as [p:the temperature rises significantly].",
+    "event_key": "pgb_098",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  },
+  {
+    "id": "sponge",
+    "title": "Sulfuric acid chars a sponge",
+    "bench": "PhyGenBench",
+    "tags": [
+      "Material"
+    ],
+    "kind": "source",
+    "prompt": "A timelapse captures the [p:reaction] as [e:concentrated sulfuric acid] is poured onto [e:a sponge].",
+    "event_key": "pgb_155",
+    "methods": [
+      "h3",
+      "ours"
+    ],
+    "notes": {}
+  }
+]);
+CASES.push({"id": "stone", "title": "A stone sinks in a pool", "bench": "PhyGenBench", "tags": ["Mechanics"], "kind": "source", "prompt": "[e:A stone] is [p:gently placed on the surface] of [e:a pool filled with water].", "methods": ["h3", "ours"], "notes": {}, "event_key": "pg_006"});
+// light entity / physics markup for prompts that had none
+const FIX_PROMPT = {
+  spoon: "[e:A silver spoon] is [p:slowly inserted] into [e:a glass of crystal-clear water], revealing the fascinating [p:visual changes and reflections] as the spoon interacts with the liquid.",
+  spring:"[e:A spring-loaded toy] is [p:pressed down and released].",
+  swim:  "[e:A person] [p:performs a backstroke], their arms moving rhythmically through [e:the water], legs kicking in a coordinated pattern."
+};
+CASES.forEach(c => { if (FIX_PROMPT[c.id]) c.prompt = FIX_PROMPT[c.id]; });
+const COMPARISON_CASES = COMPARISON_IDS.map(id => CASES.find(c => c.id === id));
+/* Gallery groups; cases are paired inside a group (an odd group ends with a single case). */
+const GALLERY_GROUPS = [
+  /* original page order first, then the paper's Fig. 1 / 9 / 10 cases; ice stays last in its group */
+  {label:"Out of sight", hid:true,  ids:["shrimp","glass","condensation","mattress","tablet","ball","sprinkler","napkin","tennis","popcorn","clay","ice"]},
+  {label:"In sight",     hid:false, ids:["can","acidpaper","freezing","rod","toycars","skier","bottle","butter","sponge","stone"]}
+];
+const GALLERY_CASES = GALLERY_GROUPS.flatMap(g => g.ids.map(id => CASES.find(c => c.id === id)));
+const SUMMARY_TITLES = {
+  "stone": "A stone [p:sinks] in a pool",
+  "ball": "A ball [p:keeps rolling] down a ramp behind a curtain",
+  "sprinkler": "A sprinkler [p:stops] after an off-screen valve closes",
+  "napkin": "A paper napkin [p:soaks through] behind a curtain",
+  "tennis": "A tennis ball [p:drops and bounces] in the dark",
+  "popcorn": "Popcorn kernels [p:pop] in the dark",
+  "clay": "A wet clay pot [p:dries and cracks] in the dark",
+  "skier": "A speedboat [p:tows] a water skier",
+  "bottle": "A sealed plastic bottle [p:crumples] as air is extracted",
+  "balloon": "A sealed balloon [p:shrivels] as air is extracted",
+  "butter": "Butter [p:melts] as the temperature [p:rises]",
+  "sponge": "Sulfuric acid [p:chars] a sponge",
+  "towel": "[p:Wicking] continues in the dark",
+  "sand": "A wave [p:washes the sandcastle away] in the dark",
+  "train": "A train [p:moves] at constant speed",
+  "space": "[p:Pouring] water in a space station",
+  "wax": "Wax [p:melts] as temperature [p:rises]",
+  "candle": "A burning candle [p:ignites] dry grass",
+  "rocket": "A rocket [p:launches] vertically",
+  "shrimp": "Shrimp [p:keep cooking] behind cardboard",
+  "glass": "A glass [p:falls and shatters] behind a curtain",
+  "condensation": "Condensation [p:accumulates] on a cold can",
+  "fountain": "A fountain [p:flows] after an off-screen button press",
+  "mattress": "An air mattress [p:deflates] in the dark",
+  "tablet": "A tablet [p:enters] water and [p:reacts] in the dark",
+  "can": "A sealed can [p:collapses] under vacuum",
+  "acidpaper": "Sulfuric acid [p:reacts] with paper",
+  "freezing": "Water [p:freezes] as the temperature [p:drops]",
+  "dryice": "Dry ice [p:sublimates] as it [p:warms]",
+  "rod": "A thin rod [p:snaps] while a thicker rod [p:stays intact]",
+  "rice": "Tossed rice [p:disperses and falls]",
+  "fold": "Paper [p:retains] its folds",
+  "toycars": "Toy cars [p:change motion] after a collision",
+  "ice": "Ice [p:keeps melting] on a hot burner behind a curtain",
+  "apple": "Sulfuric acid [p:carbonizes] a slice of apple",
+  "spoon": "A spoon [p:refracts] at the water surface",
+  "spring": "A compressed spring [p:launches] a toy",
+  "swim": "A swimmer [p:performs a backstroke]"
+};
+
+const V = (id,m,ext) => `assets/videos/${id}/${m}.${ext||"mp4"}`;
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const markup = s => esc(s).replace(/\[e:([^\]]+)\]/g,'<span class="e">$1</span>').replace(/\[p:([^\]]+)\]/g,'<span class="p">$1</span>');
+const pill = n => n ? `<span class="pill ${n[1]?"ok":"no"}">${n[1]?"✓":"✗"} ${esc(n[0])}</span>` : "";
+
+/* ---------------- hero pair: play when visible, keep in sync ---------------- */
+const heroVids = [...document.querySelectorAll("#hero-pair video")];
+const syncGroup = vids => {
+  let lead = vids[vids.length-1];
+  lead.addEventListener("timeupdate", () => {
+    const p = lead.currentTime / (lead.duration||1);
+    vids.forEach(v => { if (v!==lead && v.duration && Math.abs(v.currentTime/v.duration - p) > 0.04) v.currentTime = p*v.duration; });
+  });
+};
+syncGroup(heroVids);
+
+/* ---------------- permanent comparison rows ---------------- */
+const REDUCED = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+const chips = (c, inGallery) => c.tags.filter(t => !(inGallery && t === "Out of sight")).map(t => `<span class="chip ${t === "Out of sight" ? "hid" : "tag"}">${esc(t)}</span>`).join("");
+function videoTile(c, m) {
+  const missing = MISSING_VIDEOS.has(`${c.id}:${m}`);
+  const media = missing
+    ? `<img class="video-placeholder" src="assets/videos/train/codirector-placeholder.svg" alt="${METHODS[m].label} video unavailable for this case">`
+    : `<video muted playsinline preload="none" poster="${V(c.id,m,"jpg")}" data-src="${V(c.id,m)}" aria-label="${esc(c.title)} — ${METHODS[m].label}"></video>`;
+  return `<div class="vtile ${m === "ours" ? "ours-t" : ""}" data-case="${c.id}" data-method="${m}">
+    <header>${METHODS[m].label}<span class="chip ${m === "ours" ? "bench" : "tag"}">${METHODS[m].sub}</span></header>
+    ${media}
+  </div>`;
+}
+function promptBox(c) {
+  const lbl = c.kind === "summary" ? "Task (summary)" : "Original prompt";
+  return `<details class="pp"><summary>Prompt</summary>
+    <div class="ptext"><span class="lbl">${lbl}:</span>“${markup(c.prompt)}”</div></details>`;
+}
+function rowControls(label) {
+  return `<div class="controls">
+    <button class="row-play" type="button">${REDUCED ? "Play" : "Pause"}</button><button class="row-restart" type="button">Restart</button>
+    <input class="row-seek" type="range" min="0" max="1000" value="0" aria-label="${esc(label)} shared timeline">
+    <span class="t row-time">0.0 / 0.0 s</span>
+    <label>Speed <select class="row-speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select></label>
+  </div>`;
+}
+const rowHead = (c, inGallery) => `<div class="row-head"><strong>${markup(SUMMARY_TITLES[c.id] || c.title)}</strong>${chips(c, inGallery)}</div>`;
+
+document.getElementById("comparisonRows").innerHTML = COMPARISON_CASES.map(c => `
+  <article class="comparison-row playback-row" id="compare-${c.id}" data-case="${c.id}" style="margin-bottom:34px">
+    ${rowHead(c)}${promptBox(c)}
+    <div class="cmp4">${COMPARISON_METHODS.map(m => videoTile(c,m)).join("")}</div>
+    ${rowControls(c.title)}
+  </article>`).join("");
+
+let galleryRows = "";
+GALLERY_GROUPS.forEach((g, gi) => {
+  const list = g.ids.map(id => CASES.find(c => c.id === id));
+  if (gi > 0) galleryRows += '<hr class="group-sep">';
+  galleryRows += `<div class="group-label"><span class="chip ${g.hid ? "hid" : "tag"}">${g.label}</span>${list.length} events</div>`;
+  for (let i = 0; i < list.length; i += 2) {
+    const pair = list.slice(i, i + 2);
+    galleryRows += `<div class="playback-row" id="gallery-${pair.map(c => c.id).join("-")}" style="margin-bottom:34px">
+      <div class="grow ${pair.length === 1 ? "single" : ""}">
+        ${pair.map(c => `<div class="gcase" data-case="${c.id}">${rowHead(c, true)}${promptBox(c)}
+          <div class="pair">${["h3","ours"].map(m => videoTile(c,m)).join("")}</div></div>`).join("")}
+      </div>
+      ${rowControls(pair.map(c => c.title).join(" / "))}
+    </div>`;
+  }
+});
+document.getElementById("galleryRows").innerHTML = galleryRows;
+document.getElementById("cmpBlurb").insertAdjacentText("afterbegin", `${COMPARISON_CASES.length} cases. `);
+document.getElementById("galBlurb").insertAdjacentText("afterbegin", `${GALLERY_CASES.length} events. `);
+/* Lazy-load visible rows; keep all videos at their actual playback speed. */
+function wireRow(row) {
+  const vids = [...row.querySelectorAll("video")];
+  const button=row.querySelector(".row-play"), seek=row.querySelector(".row-seek"), time=row.querySelector(".row-time"), speed=row.querySelector(".row-speed");
+  let wanted=!REDUCED, visible=false;
+  const duration=()=>Math.max(0,...vids.map(v=>Number.isFinite(v.duration)?v.duration:0));
+  const leader=()=>vids.reduce((a,v)=>(v.duration||0)>(a.duration||0)?v:a,vids[0]);
+  const load=()=>vids.forEach(v=>{if(!v.getAttribute("src")){v.src=v.dataset.src;v.load();}});
+  const play=()=>{load();vids.forEach(v=>{v.playbackRate=Number(speed.value);v.play().catch(()=>{});});};
+  const pause=()=>vids.forEach(v=>v.pause());
+  const reset=()=>vids.forEach(v=>{if(v.readyState)v.currentTime=0;});
+  button.onclick=()=>{wanted=!wanted;button.textContent=wanted?"Pause":"Play";wanted?play():pause();};
+  row.querySelector(".row-restart").onclick=()=>{load();reset();seek.value=0;if(wanted)play();};
+  seek.oninput=()=>{const t=duration()*Number(seek.value)/1000;vids.forEach(v=>{if(v.readyState)v.currentTime=Math.min(t,Math.max(0,v.duration-0.02));});};
+  speed.onchange=()=>vids.forEach(v=>v.playbackRate=Number(speed.value));
+  const refresh=()=>{const L=leader(),d=duration();if(!L||!d)return;seek.value=Math.round(L.currentTime/d*1000);time.textContent=`${L.currentTime.toFixed(1)} / ${d.toFixed(1)} s`;
+    if(wanted&&visible)vids.forEach(v=>{if(v!==L&&v.readyState&&!v.ended&&Math.abs(v.currentTime-L.currentTime)>.2)v.currentTime=Math.min(L.currentTime,Math.max(0,v.duration-.02));});};
+  vids.forEach(v=>{v.addEventListener("timeupdate",refresh);v.addEventListener("ended",()=>{if(v===leader()&&wanted&&visible){reset();play();}});});
+  return on=>{visible=on;if(on&&wanted)play();else pause();};
+}
+const rowHandlers=new Map([...document.querySelectorAll(".playback-row")].map(row=>[row,wireRow(row)]));
+const rowObserver=new IntersectionObserver(entries=>entries.forEach(e=>rowHandlers.get(e.target)(e.isIntersecting)),{threshold:.08});
+rowHandlers.forEach((_,row)=>rowObserver.observe(row));
+const heroIO = new IntersectionObserver(es => es.forEach(e => {
+  heroVids.forEach(v => (e.isIntersecting && !REDUCED) ? v.play().catch(()=>{}) : v.pause());
+}), {threshold:.25});
+if (REDUCED) heroVids.forEach(v => v.setAttribute("controls", ""));
+heroIO.observe(document.getElementById("hero-pair"));
+
+/* ---------------- lightbox + bibtex ---------------- */
+const lb = document.getElementById("lightbox");
+document.querySelectorAll("[data-zoom]").forEach(img => img.onclick = () => { lb.querySelector("img").src = img.src; lb.classList.add("on"); });
+lb.onclick = () => lb.classList.remove("on");
+document.addEventListener("keydown", e => { if (e.key==="Escape") lb.classList.remove("on"); });
+document.getElementById("copyBib").onclick = e => {
+  const txt = document.getElementById("bibText").innerText.replace(/^Copy\s*/,"");
+  navigator.clipboard && navigator.clipboard.writeText(txt).then(() => { e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy", 1400); });
+};
+</script>
+<script>
+(function(){
+  document.documentElement.classList.add("js");
+  const tabs=[...document.querySelectorAll('.rtabs [role="tab"]')];
+  const panels=tabs.map(t=>document.getElementById(t.getAttribute("aria-controls")));
+  function show(i,focus){
+    tabs.forEach((t,j)=>{t.setAttribute("aria-selected",j===i);t.tabIndex=j===i?0:-1;panels[j].hidden=j!==i;});
+    if(focus)tabs[i].focus();
+  }
+  tabs.forEach((t,i)=>{
+    t.addEventListener("click",()=>show(i,false));
+    t.addEventListener("keydown",e=>{
+      const n=tabs.length;
+      if(e.key==="ArrowRight"){e.preventDefault();show((i+1)%n,true);}
+      if(e.key==="ArrowLeft"){e.preventDefault();show((i-1+n)%n,true);}
+      if(e.key==="Home"){e.preventDefault();show(0,true);}
+      if(e.key==="End"){e.preventDefault();show(n-1,true);}
+    });
+  });
+  if(tabs.length)show(0,false);
+})();
+</script>
+</body>
+</html>
