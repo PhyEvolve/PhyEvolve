@@ -13,15 +13,15 @@
 <meta name="citation_author" content="Guang Yang">
 <meta name="citation_author" content="Xiao Yang">
 <meta name="citation_publication_date" content="2026">
-<link rel="canonical" href="https://phyevolve.github.io/phyevolve-project-page/">
-<meta property="og:url" content="https://phyevolve.github.io/phyevolve-project-page/">
+<link rel="canonical" href="https://phyevolve.github.io/PhyEvolve/">
+<meta property="og:url" content="https://phyevolve.github.io/PhyEvolve/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation">
 <meta property="og:description" content="PhyEvolve formulates prompt enhancement for physics-aware video generation as semantic completion through structured state-evolution planning, with a Director, a Physical Evolver and a Composer, and no change to the video generator.">
-<meta property="og:image" content="https://phyevolve.github.io/phyevolve-project-page/assets/img/og_card.jpg">
+<meta property="og:image" content="https://phyevolve.github.io/PhyEvolve/assets/img/og_card.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://phyevolve.github.io/phyevolve-project-page/assets/img/og_card.jpg">
+<meta name="twitter:image" content="https://phyevolve.github.io/PhyEvolve/assets/img/og_card.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='9' width='18' height='14' rx='3' fill='%23BAE6FD'/%3E%3Crect x='6' y='6' width='18' height='14' rx='3' fill='%237DD3FC'/%3E%3Crect x='10' y='3' width='19' height='15' rx='3' fill='%231E9FD0'/%3E%3Cpath d='M17 7l6 3.5-6 3.5z' fill='white'/%3E%3C/svg%3E">
 <style>
 /* ======================================================================
@@ -131,6 +131,8 @@ section{padding:34px 0 8px}
 /* ---------- figures ---------- */
 figure{margin:0}
 .fig{border:1.5px solid var(--grid);border-radius:12px;padding:12px;background:#fff}
+.ov-video{border:1.5px solid var(--grid);border-radius:14px;overflow:hidden;background:#000;box-shadow:0 10px 30px rgba(30,50,80,.12)}
+.ov-video video{display:block;width:100%;aspect-ratio:16/9;background:#000}
 .fig img{width:100%;border-radius:6px;cursor:zoom-in}
 .fig figcaption{font-size:16.5px;margin-top:10px}
 .fig figcaption b{font-weight:700}
@@ -259,7 +261,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
       PhyEvolve
     </a>
     <div class="links">
-      <a href="#showcase">Showcase</a><a href="#method">Method</a><a href="#compare">Comparisons</a>
+      <a href="#video">Video</a><a href="#showcase">Showcase</a><a href="#method">Method</a><a href="#compare">Comparisons</a>
       <a href="#gallery">Gallery</a><a href="#results">Results</a><a href="#bibtex">BibTeX</a>
     </div>
   </div>
@@ -281,10 +283,9 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
       <div class="affil">Canva Research</div>
       <div class="au-notes"><sup>†</sup>Equal contribution &nbsp;·&nbsp; <sup>∗</sup>Corresponding author &nbsp;·&nbsp; <sup>‡</sup>Project leader</div>
       <div class="btns">
-        <!-- TODO: replace href="#" with real links -->
+        <!-- TODO: link the Paper button once the arXiv / PDF URL is available -->
         <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3v5h5"/></svg>Paper</a>
-        <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>arXiv</a>
-        <a class="btn" href="#"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 3 .8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>Code</a>
+        <a class="btn" href="https://github.com/PhyEvolve/PhyEvolve" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 3 .8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>Project</a>
         <a class="btn ghost" href="assets/paper/PhyEvolve_overview.pdf">Overview figure (PDF)</a>
         <a class="btn ghost" href="#bibtex">BibTeX</a>
       </div>
@@ -297,10 +298,22 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
   </div>
 </header>
 
+<!-- ================================================================ OVERVIEW VIDEO -->
+<section id="video">
+  <div class="wrap">
+    <div class="sec-head"><span class="num">1</span><h2>Overview video</h2></div>
+    <div class="ov-video">
+      <video controls preload="metadata" playsinline poster="assets/video/PhyEvolve_overview.jpg" aria-label="PhyEvolve overview video">
+        <source src="assets/video/PhyEvolve_overview.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+</section>
+
 <!-- ================================================================ SHOWCASE -->
 <section id="showcase">
   <div class="wrap">
-    <div class="sec-head"><span class="num">1</span><h2>What happens behind the curtain?</h2></div>
+    <div class="sec-head"><span class="num">2</span><h2>What happens out of sight?</h2></div>
     <p class="sec-sub">The curtain only changes what the camera sees. The foam keeps expanding while hidden, so when the curtain rises the scene must reveal the state it has reached — not restart.</p>
 
     <div class="film"><div class="frames" style="grid-template-columns:repeat(5,1fr)">
@@ -314,15 +327,15 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
       <span>1.5 s · Bowl filling</span><span>3.3 s · Curtain drops</span><span>5 s · Out of sight</span><span>7.2 s · Curtain rises</span><span>7.9 s · Foam overflowed</span>
     </div>
     <div class="obs-track"><span>Visible</span><span class="h">Hidden (curtain)</span><span>Visible</span></div>
-    <div class="phys-bar">Physical evolution continues: dispensing and expansion go on while hidden</div>
+    <div class="phys-bar"><b>Evolving state:</b> dispensing and expansion continue while hidden</div>
 
     <div class="showcase" id="hero-pair">
       <div class="prompt-card"><span class="lbl">Input prompt <em>P</em>:</span>
         “While <span class="e">the hand</span> <span class="p">keeps pressing the trigger</span>, <span class="e">a heavy curtain</span> drops from the ceiling between the camera and the bowl,
         completely blocking <span class="e">the bowl and spray can</span> from view, without touching or interacting with any object in the scene … After a pause, the curtain rises.”</div>
-      <div class="vtile"><header>Minimax-H3 <span class="chip tag">original prompt</span></header>
+      <div class="vtile"><header>Minimax-H3</header>
         <video muted playsinline loop preload="metadata" poster="assets/videos/foam/h3.jpg" src="assets/videos/foam/h3.mp4"></video></div>
-      <div class="vtile ours-t"><header>PhyEvolve <span class="chip bench">refined prompt</span></header>
+      <div class="vtile ours-t"><header>PhyEvolve</header>
         <video muted playsinline loop preload="metadata" poster="assets/videos/foam/ours.jpg" src="assets/videos/foam/ours.mp4"></video>
         <div class="verdict"><span class="pill ok">✓ Foam overflows while hidden</span></div></div>
     </div>
@@ -343,7 +356,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
 <!-- ================================================================ METHOD -->
 <section id="method">
   <div class="wrap">
-    <div class="sec-head"><span class="num">2</span><h2>Method</h2></div>
+    <div class="sec-head"><span class="num">3</span><h2>Method</h2></div>
     <figure class="fig">
       <img src="assets/img/figures/method_overview.jpg" alt="Overview of PhyEvolve: Director, Physical Evolver and Composer turn the input prompt and optional first frame into a refined prompt for a frozen video generator" loading="lazy" data-zoom>
       <figcaption><b>Overview of PhyEvolve.</b> The Director separates actions from observations, the Physical Evolver models causal state evolution under occlusion,
@@ -356,7 +369,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
 <!-- ================================================================ COMPARISONS -->
 <section id="compare">
   <div class="wrap">
-    <div class="sec-head"><span class="num">3</span><h2>Side-by-side comparisons</h2></div>
+    <div class="sec-head"><span class="num">4</span><h2>Side-by-side comparisons</h2></div>
     <p class="sec-sub" id="cmpBlurb">Four methods in each row: Minimax-H3 (original prompt), NEWTON, Co-Director and PhyEvolve. Each row has its own shared playback controls.</p>
     <div id="comparisonRows"></div>
   </div>
@@ -365,7 +378,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
 <!-- ================================================================ GALLERY -->
 <section id="gallery">
   <div class="wrap">
-    <div class="sec-head"><span class="num">4</span><h2>Gallery</h2></div>
+    <div class="sec-head"><span class="num">5</span><h2>Gallery</h2></div>
     <p class="sec-sub" id="galBlurb">Two events per row. Each pair compares Minimax-H3 on the original prompt with PhyEvolve. Events are distinct from the comparisons above.</p>
     <div id="galleryRows"></div>
   </div>
@@ -374,7 +387,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
 <!-- ================================================================ RESULTS -->
 <section id="results">
   <div class="wrap">
-    <div class="sec-head"><span class="num">5</span><h2>Quantitative results</h2></div>
+    <div class="sec-head"><span class="num">6</span><h2>Quantitative results</h2></div>
     <p class="sec-sub">NEWTON, Co-Director and PhyEvolve all run on the same frozen Minimax-H3 generator; PhyEvolve only replaces the prompt.
       All scores are percentages, higher is better, and the best value in each column is bold.</p>
     <div class="stats">
@@ -513,7 +526,7 @@ footer{margin-top:40px;padding:22px 0 40px;border-top:1px solid var(--grid);font
 <!-- ================================================================ BIBTEX -->
 <section id="bibtex">
   <div class="wrap">
-    <div class="sec-head"><span class="num">6</span><h2>BibTeX</h2></div>
+    <div class="sec-head"><span class="num">7</span><h2>BibTeX</h2></div>
     <pre class="bib" id="bibText"><button class="btn ghost copy" type="button" id="copyBib">Copy</button>@article{zhou2026phyevolve,
   title   = {PhyEvolve: Multi-Agent State-Evolution Planning for Physics-Aware Video Generation},
   author  = {Zhou, Yang-Hao and Tan, Lixing and Li, Zhiqi and Yang, Guang and Yang, Xiao},
@@ -1114,7 +1127,7 @@ function videoTile(c, m) {
     ? `<img class="video-placeholder" src="assets/videos/train/codirector-placeholder.svg" alt="${METHODS[m].label} video unavailable for this case">`
     : `<video muted playsinline preload="none" poster="${V(c.id,m,"jpg")}" data-src="${V(c.id,m)}" aria-label="${esc(c.title)} — ${METHODS[m].label}"></video>`;
   return `<div class="vtile ${m === "ours" ? "ours-t" : ""}" data-case="${c.id}" data-method="${m}">
-    <header>${METHODS[m].label}<span class="chip ${m === "ours" ? "bench" : "tag"}">${METHODS[m].sub}</span></header>
+    <header>${METHODS[m].label}</header>
     ${media}
   </div>`;
 }
